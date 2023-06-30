@@ -109,7 +109,22 @@
     width: 100%;
     display: flex;
     justify-content: flex-end;
-    margin-top: 6px;
+    margin-top: 10px;
+}
+
+.mainPage > .container > .previewContainer > .previewBtn {
+    padding: 8px 16px;
+    border-radius: 6px; 
+    border: none;
+    background-color: #6f6f6f;
+    color: white;
+    font-size: 14px;
+    font-weight: 700;
+    font-family: 'Inter';    
+}
+
+.mainPage > .container > .previewContainer > .previewBtn:hover {
+    background-color: #5f5f5f;
 }
 
 .mainPage > .container > .subtitle {
@@ -119,6 +134,21 @@
     margin-top: 24px;
     font-weight: 700;
     font-family: 'Inter';
+}
+
+.mainPage > .container > .subtitle  > .editOrderBtn {
+    padding: 8px 16px;
+    border-radius: 6px; 
+    border: none;
+    background-color: #6f6f6f;
+    color: white;
+    font-size: 14px;
+    font-weight: 700;
+    font-family: 'Inter';
+}
+
+.mainPage > .container > .subtitle  > .editOrderBtn:hover {
+    background-color: #5f5f5f;
 }
 
 .mainPage > .container > .inputContainer {
@@ -189,11 +219,11 @@
 
 .mainPage > .container > .recommendContainer > .loading {
     margin: 20px 0 10px;
-    width: 36px;
-    height: 36px;
+    width: 32px;
+    height: 32px;
 }
 
-.mainPage > .container > .questionContainer > .noQuestion {
+.noQuestion {
     display: flex;
     align-items: center;
     justify-content: center;
