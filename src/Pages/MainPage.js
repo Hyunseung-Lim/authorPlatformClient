@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
-import axios from 'axios'
-import { useLocation } from 'react-router-dom';
+import { useLocation, Link } from 'react-router-dom';
 import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
+import axios from 'axios';
 
 import { Topbar } from '../Components/Topbar/topbar';
 import { Questionbox } from '../Components/Questionbox/questionbox';
@@ -31,7 +31,7 @@ const generateRandomKey = (length) => {
 export const MainPage = (props) => {
 
     const location = useLocation();
-    const { url } = location.state;
+    const { url, username } = location.state;
     const[title, setTitle] = useState("Title of Research Paper");
     const[authors, setAuthors] = useState("");
     const[currentQuestion, setCurrentQuestion] = useState("");
@@ -51,7 +51,9 @@ export const MainPage = (props) => {
                 console.error('Error:', error);
             }
         };
-        fetchData();
+        if(title === "Title of Research Paper") {
+            fetchData();
+        }
     }, []);
 
     const currentQuestionHandler = (e) => {
@@ -85,6 +87,9 @@ export const MainPage = (props) => {
             setQnAs(prevData => [...prevData, {question: String(question), answer: String(res.lucy_answer), isPublic: false}]);
             setWaitQList(prevData => prevData.filter((item, i) => item.id !== id));
         })
+        .catch(error => {
+            setWaitQList(prevData => prevData.filter((item, i) => item.id !== id));
+        });
     }
 
     function deleteQuestion (index) {
@@ -146,9 +151,19 @@ export const MainPage = (props) => {
                         {authors}
                     </div>
                     <div className='previewContainer'>
-                        <button className='previewBtn'>
-                            Preview
-                        </button>
+                        <Link 
+                            to = {'/preview'}
+                            state = {{ 
+                                url: url,
+                                title: title,
+                                authors: authors,
+                                QnAs: QnAs,
+                                username: username
+                                }} 
+                            className='previewBtn'
+                        >
+                            <div>Preview</div>
+                        </Link>
                     </div>
                     <div className='subtitle'>
                         Add Question
@@ -194,12 +209,14 @@ export const MainPage = (props) => {
                                 )}
                             </Droppable>
                         }
-                        {waitQList.map((Q, index) => (
-                            <div className='tempoQuestionbox' key={index}>
-                                <div className='questionbar'>{Q.question}</div>
-                                <div className='answerbox'>Answer is being generated...</div>
-                            </div>
-                        ))}
+                        <div className='tempoQuestionboxContainer'>
+                            {waitQList.map((Q, index) => (
+                                <div className='tempoQuestionbox' key={index}>
+                                    <div className='questionbar'>{Q.question}</div>
+                                    <div className='answerbox'>Answer is being generated...</div>
+                                </div>
+                            ))}                            
+                        </div>
                     </DragDropContext>
                 </div>
                 <div className='footer'>
