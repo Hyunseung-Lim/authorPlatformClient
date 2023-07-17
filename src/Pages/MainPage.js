@@ -24,7 +24,6 @@ const generateRandomKey = (length) => {
     for ( let i = 0; i < length; i++ ) {
         result += characters.charAt(Math.floor(Math.random() * charactersLength));
     }
-
     return result;
 }
 
@@ -37,9 +36,11 @@ export const MainPage = (props) => {
     const[authors, setAuthors] = useState("");
     const[currentQuestion, setCurrentQuestion] = useState("");
     const[recommendQs, setRecommendQs] = useState([]);
+    const[recommendQTurn, setRecommendQTurn] = useState(0);
     const[loadRQs, setLoadRQs] = useState(false);
     const[QnAs, setQnAs] = useState([]);
     const[waitQList, setWaitQList] = useState([]);
+    const[viewerprompt, setViewerprompt] = useState("");
 
     useEffect(() => {
         const load_data = async () => {
@@ -78,7 +79,11 @@ export const MainPage = (props) => {
         axios({
             method: "POST",
             url: "https://qna-restapi-dxpyj.run.goorm.site/uploadQuestionSet",
-            data: {title: title, question_set: QnAs, user: username},
+            data: {
+                title: title, 
+                question_set: QnAs, 
+                user: username
+            },
             headers: {'Content-Type': 'application/json'}
         })
         .then ((response) => {
@@ -93,15 +98,40 @@ export const MainPage = (props) => {
         setCurrentQuestion(e.target.value);
     }
 
-    const generateQuestion = async () => {
+    // const generateQuestion = async () => {
+    //     setLoadRQs(true);
+    //     try {
+    //         const getApi = 'https://qna-restapi-dxpyj.run.goorm.site/getQuestion/' + String(url).split('/').pop();
+    //         const result = await axios(getApi);
+    //         setRecommendQTurn(recommendQTurn + 1);
+    //         setRecommendQs(result.data.questions);
+    //     } catch (error) {
+    //         console.error('Error:', error);
+    //     }
+    //     setLoadRQs(false);
+    // }
+
+    async function generateRecommendQuestion (endpoint) {
         setLoadRQs(true);
-        try {
-            const getApi = 'https://qna-restapi-dxpyj.run.goorm.site/getQuestion/' + String(url).split('/').pop();
-            const result = await axios(getApi);
-            setRecommendQs(result.data.questions);
-        } catch (error) {
+        await axios({
+            method: "POST",
+            url:"https://qna-restapi-dxpyj.run.goorm.site/" + endpoint + "/",
+            data: { 
+                url: String(url).split('/').pop(), 
+                turn: recommendQTurn,
+                added: QnAs.map(QnA => QnA.question),
+                viewer: viewerprompt
+            },
+            headers: {'Content-Type': 'application/json'}
+        })
+        .then((response) => {
+            const res =response.data;
+            setRecommendQs(res.questions);
+            setRecommendQTurn(recommendQTurn + 1);
+        })
+        .catch(error => {
             console.error('Error:', error);
-        }
+        });
         setLoadRQs(false);
     }
 
@@ -112,7 +142,8 @@ export const MainPage = (props) => {
         await axios({
             method: "POST",
             url:"https://port-0-authorplatfomserver-7xwyjq992lljff6sw0.sel4.cloudtype.app/get_lucy_answer",
-            data: { question: question, title: title}
+            data: { question: question, title: title},
+            headers: {'Content-Type': 'application/json'}
         })
         .then((response) => {
             const res =response.data;
@@ -124,21 +155,44 @@ export const MainPage = (props) => {
         });
     }
 
-    // async function addFollowUpQuestion (prevQuestion, prevAnswer, question) {
-    //     axios({
-    //         method: "POST",
-    //         url: "https://qna-restapi-dxpyj.run.goorm.site/getFUQuestion",
-    //         data: {title: String(result.data.meta[0])},
-    //         headers: {'Content-Type': 'application/json'}
-    //     })
-    //     .then ((response) => {
-    //         const res =response.data;
-    //         setQnAs(res);
-    //     })
-    //     .catch(error =>{
-    //         console.log("error");
-    //     })
-    // }
+    async function addFollowUpAnswer (question, index) {
+        await axios({
+            method: "POST",
+            url:"https://port-0-authorplatfomserver-7xwyjq992lljff6sw0.sel4.cloudtype.app/get_lucy_answer",
+            data: { question: question, title: title},
+            headers: {'Content-Type': 'application/json'}
+        })
+        .then((response) => {
+            const res =response.data;
+            setQnAs( prevData => {
+                const newQnAs = [...prevData];
+                newQnAs.splice(index + 1, 0, {question: String(question), answer: String(res.lucy_answer), isPublic: false});
+                return newQnAs;
+            });
+        })
+        .catch(error => {
+        });
+    }
+
+    async function regenerateAnswer (question, updateIndex) {
+        await axios({
+            method: "POST",
+            url:"https://port-0-authorplatfomserver-7xwyjq992lljff6sw0.sel4.cloudtype.app/get_lucy_answer",
+            data: { question: question, title: title},
+            headers: {'Content-Type': 'application/json'}
+        })
+        .then((response) => {
+            const res =response.data;
+
+            setQnAs(prevData => {
+                let newData = [...prevData];
+                newData.map((QnA, index) => updateIndex === index ? {...QnA, answer: String(res.lucy_answer) } : QnA);
+                return newData;
+            })
+        })
+        .catch(error => {
+        });
+    }
 
     function deleteQuestion (index) {
         setQnAs(prevData => prevData.filter((item, i) => i !== index));
@@ -169,6 +223,12 @@ export const MainPage = (props) => {
     function updatePublic (updateIndex, isPublic) {
         setQnAs(prevData => (
             prevData.map((QnA, index) => updateIndex === index ? {...QnA, isPublic: isPublic } : QnA)
+        ));
+    }
+
+    function updateRecommendQuestion (updateIndex, newQuestion) {
+        setRecommendQs(prevData => (
+            prevData.map((question, index) => updateIndex === index ? newQuestion : question)
         ));
     }
 
@@ -223,8 +283,11 @@ export const MainPage = (props) => {
                         Question Recommendation
                     </div>
                     <div className='recommendContainer'>
-                        <button className='recommendBtn' disabled={loadRQs} onClick={generateQuestion}>Recommend Question</button>
-                        {loadRQs ? <img className='loading' src="images/loading.gif" alt="loading" /> : recommendQs.map((rQ, index) => (<Recommendquestion key={index} question={rQ} addRecommendQuestion={() => addRecommendQuestion(rQ, index)}/>))}
+                        <div className='recommendBtnContainer'>
+                            <button className='recommendBtn' disabled={loadRQs} onClick={() => generateRecommendQuestion('getQuestion')}>Recommend General Question</button>
+                            <button className='recommendBtn' disabled={loadRQs} onClick={() => generateRecommendQuestion('getAuthorQuestion')}>Recommend Author Custom Question</button>                            
+                        </div>
+                        {loadRQs ? <img className='loading' src="images/loading.gif" alt="loading" /> : recommendQs.map((rQ, index) => (<Recommendquestion key={index} question={rQ} addRecommendQuestion={() => addRecommendQuestion(rQ, index)} updateRecommendQuestion={(updateQ) => updateRecommendQuestion(index, updateQ)}/>))}
                     </div>
                     <div className='subtitle'>
                         QnA
@@ -247,7 +310,22 @@ export const MainPage = (props) => {
                                                 ref={provided.innerRef}
                                                 {...provided.draggableProps}
                                                 >
-                                                    <Questionbox key={index} keyvalue={index} id={String(QnA.question + index)} question={QnA.question} answer={QnA.answer} isPublic={QnA.isPublic} updateAnswer={(newAnswer)=>updateAnswer(index, newAnswer)} updatePublic={(isPublic)=>updatePublic(index, isPublic)} deleteQuestion={() => deleteQuestion(index)} handle={provided.dragHandleProps}/>
+                                                    <Questionbox 
+                                                        key={index}
+                                                        myIndex={index}
+                                                        id={String(QnA.question + index)}
+                                                        title ={title}
+                                                        abstract = { abstract }
+                                                        question={QnA.question}
+                                                        answer={QnA.answer}
+                                                        isPublic={QnA.isPublic}
+                                                        updateAnswer={(newAnswer)=>updateAnswer(index, newAnswer)}
+                                                        updatePublic={(isPublic)=>updatePublic(index, isPublic)}
+                                                        deleteQuestion={() => deleteQuestion(index)}
+                                                        addFollowUpAnswer = {(question, i) => addFollowUpAnswer(question, i)}
+                                                        regenerateAnswer = {(question) => regenerateAnswer(question, index)}
+                                                        handle={provided.dragHandleProps}
+                                                    />
                                                 </div>
                                             )}
                                         </Draggable>
@@ -263,7 +341,7 @@ export const MainPage = (props) => {
                                     <div className='questionbar'>{Q.question}</div>
                                     <div className='answerbox'>Answer is being generated...</div>
                                 </div>
-                            ))}                            
+                            ))}
                         </div>
                     </DragDropContext>
                 </div>
