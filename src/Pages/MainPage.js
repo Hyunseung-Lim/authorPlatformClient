@@ -131,6 +131,31 @@ export const MainPage = (props) => {
     //     setLoadRQs(false);
     // }
 
+    async function logging (log, correspondingData) {
+        var convertedData;
+        if (typeof correspondingData === 'object' && correspondingData !== null) {
+            convertedData = JSON.stringify(correspondingData);
+        }
+        else {
+            convertedData = correspondingData;
+        }
+        await axios({
+            method: "POST",
+            url:"https://qna-restapi-dxpyj.run.goorm.site/uploadUsageLog",
+            data: { 
+                user: username,
+                title: title,
+                log: log,
+                correspondingData: convertedData
+            },
+            headers: {'Content-Type': 'application/json'}
+        })
+        .catch(error => {
+            console.error('Error:', error);
+        });
+    }
+
+    // function for general Q button and personalized Q 
     async function generateRecommendQuestion (endpoint) {
         setLoadRQs(true);
         await axios({
@@ -149,6 +174,13 @@ export const MainPage = (props) => {
         .then((response) => {
             const res =response.data;
             setRecommendQs(res.questions);
+            // logging
+            if(endpoint === "getQuestion") {
+                logging("getGeneralQ", res.questions);
+            }
+            else if(endpoint === "getPersonalizedQ") {
+                logging("getPersonalQ", res.questions);
+            }
         })
         .catch(error => {
             console.error('Error:', error);
@@ -217,22 +249,30 @@ export const MainPage = (props) => {
 
     function deleteQuestion (index) {
         setQnAs(prevData => prevData.filter((item, i) => i !== index));
+        logging("deleteQ", "");
     }
 
     function addRecommendQuestion (question, index) {
         addQuestion(question);
         setRecommendQs(prevData => {
-            let newArray = [...prevData];
-            newArray.splice(index, 1);
-            return newArray;
-        })
+            let newData = prevData.filter((_, i) => i !== index);
+            return newData;
+        });
+        logging("addRecommendQ", question);
     }
 
     function addCurrentQuestion () {
         if(currentQuestion !== "") {
             addQuestion(currentQuestion);
+            logging("addOwnQ", currentQuestion);
             setCurrentQuestion("");
         }
+    }
+
+    function updateQuestion (updateIndex, newQuestion) {
+        setQnAs(prevData => (
+            prevData.map((QnA, index) => updateIndex === index ? {...QnA, question: newQuestion } : QnA)
+        ));
     }
 
     function updateAnswer (updateIndex, newAnswer) {
@@ -251,6 +291,7 @@ export const MainPage = (props) => {
         setRecommendQs(prevData => (
             prevData.map((question, index) => updateIndex === index ? newQuestion : question)
         ));
+        logging("editRecommendQ", newQuestion);
     }
 
     function onDragEnd(result) {
@@ -276,6 +317,7 @@ export const MainPage = (props) => {
 
     function updatePrompt (prompt) {
         setViewerprompt(prompt);
+        logging("editOwnPrompt", prompt);
     }
 
     if(!isLoading) {
@@ -343,7 +385,7 @@ export const MainPage = (props) => {
                             <button className='recommendBtn' disabled={loadRQs} onClick={() => generateRecommendQuestion('getQuestion')}>General Question</button>
                             <button className='recommendBtn' disabled={loadRQs} onClick={() => generateRecommendQuestion('getPersonalizedQ')}>Personalized Question</button>
                         </div>
-                        {loadRQs ? <img className='loading' src="images/loading.gif" alt="loading" /> : recommendQs.map((rQ, index) => (<Recommendquestion key={index} question={rQ} addRecommendQuestion={() => addRecommendQuestion(rQ, index)} updateRecommendQuestion={(updateQ) => updateRecommendQuestion(index, updateQ)}/>))}
+                        {loadRQs ? <img className='loading' src="images/loading.gif" alt="loading" /> : recommendQs.map((rQ, index) => (<Recommendquestion key={rQ} question={rQ} addRecommendQuestion={() => addRecommendQuestion(rQ, index)} updateRecommendQuestion={(updateQ) => updateRecommendQuestion(index, updateQ)}/>))}
                     </div>
                     <div className='subtitleContainer'>
                         <div className='subtitle'>
@@ -377,12 +419,14 @@ export const MainPage = (props) => {
                                                         question={QnA.question}
                                                         answer={QnA.answer}
                                                         isPublic={QnA.isPublic}
+                                                        updateQuestion={(newQuestion)=>updateQuestion(index, newQuestion)}
                                                         updateAnswer={(newAnswer)=>updateAnswer(index, newAnswer)}
                                                         updatePublic={(isPublic)=>updatePublic(index, isPublic)}
                                                         deleteQuestion={() => deleteQuestion(index)}
                                                         addFollowUpAnswer = {(question, i) => addFollowUpAnswer(question, i)}
                                                         regenerateAnswer = {(question) => regenerateAnswer(question, index)}
                                                         handle={provided.dragHandleProps}
+                                                        logging={(log, data) =>logging(log, data)}
                                                     />
                                                 </div>
                                             )}

@@ -11,7 +11,7 @@
     margin: 10px 0;
     background-color: #F6F6F6;
     width: 400px;
-    height: 120px;
+    height: 130px;
 }
 
 .qgenerationsetting > .titleContainer {
@@ -24,7 +24,7 @@
 
 .qgenerationsetting > .titleContainer > .closeBtn {
     width: 20px;
-    height: 18px;
+    height: 16px;
     padding-bottom: 4px;
 }
 
@@ -32,9 +32,13 @@
     content: url(../../../public/images/x_hover.png);
 }
 
+.qgenerationsetting > .titleContainer > .placeHolder {
+    width: 20px;
+}
+
 .qgenerationsetting > textarea {
     resize: none;
-    margin: 4px 0 6px;
+    margin: 6px 0 8px;
     min-height: 60px;
     font-family: 'Inter';
 }
@@ -42,7 +46,7 @@
 .qgenerationsetting > .saveBtn {
     border: 0px;
     border-radius: 4px;
-    height: 40px;
+    height: 32px;
     background-color: #A42C25;
     color: white;
     font-weight: 600;

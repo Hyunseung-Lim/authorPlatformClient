@@ -10,7 +10,7 @@ export const LoginPage = (props) => {
     const[username, setUsername] = useState("");
     const[userScholarID, setUserScholarID] = useState("");
     const[password, setPassword] = useState("test01");
-    const[url, setUrl] = useState("https://arxiv.org/abs/1706.03762");
+    const[url, setUrl] = useState("");
 
     const usernameHandler = (e) => {
         e.preventDefault();

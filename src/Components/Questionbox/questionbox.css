@@ -66,7 +66,20 @@
     font-family: 'Inter';
 }
 
-.questionbox > .contatiner > .answerbox > .answer > .editAnswer {
+.question > .editQuestion {
+    width: 100%;
+    padding: 0px;
+    overflow: hidden;
+    resize: none;
+    border: none;
+    outline: none;
+    background-color: white;
+    font-size: 16px;
+    font-family: 'Inter';
+    font-weight: 700;
+}
+
+.editAnswer {
     width: 100%;
     padding: 0px;
     overflow: hidden;
@@ -78,51 +91,19 @@
     font-family: 'Inter';
 }
 
-.questionbox > .contatiner > .answerbox > .buttonContainer {
-    margin-top: 10px;
-    display: flex;
-    justify-content: flex-end;
-}
-
-.questionbox > .contatiner > .answerbox > .buttonContainer > .editBtns > .cancelBtn {
-    margin-right: 8px;
-    padding: 6px 14px;
-    border-radius: 6px;
-    border: solid 1px #969696;
-    background-color: white;
-    color: #969696;
-}
-
-.questionbox > .contatiner > .answerbox > .buttonContainer > .editBtns > .completeBtn {
-    padding: 6px 14px;
-    border-radius: 6px;    
-    border: none;
-    background-color: #A42C25;
-    color: white;
-}
-
-.questionbox > .contatiner > .answerbox > .buttonContainer > button {
-    background: none;
-    border: 0px;
-    text-decoration: underline;
-    color: #646464;
-}
-
-.questionbox > .contatiner > .answerbox > .buttonContainer > button:hover {
-    color: #404040;
-}
-
 .questionbox > .handle {
     margin: auto;
     width: 13px;
     height: 20px;
 }
 
-.questionbox > .contatiner > .advanceBtns {
+.questionbox > .contatiner > .questionFooter {
+    display: flex;
+    justify-content: space-between;
     margin-top: 10px;
 }
 
-.questionbox > .contatiner > .advanceBtns > button {
+.questionbox > .contatiner > .questionFooter > .advanceBtns > button {
     border: 0;
     border-radius: 6px;
     margin: 0 10px;
@@ -134,11 +115,46 @@
     font-family: 'Inter';
 }
 
-.questionbox > .contatiner > .advanceBtns > button:hover {
+.questionbox > .contatiner > .questionFooter > button:hover {
     background-color: #525ed1;
 }
 
-.questionbox > .contatiner > .advanceBtns > .redoBtn > img {
+.questionbox > .contatiner > .questionFooter > .buttonContainer {
+    display: flex;
+    justify-content: flex-end;
+}
+
+.questionbox > .contatiner > .questionFooter > .buttonContainer > .editBtns > .cancelBtn {
+    margin-right: 8px;
+    padding: 6px 14px;
+    border-radius: 6px;
+    border: solid 1px #969696;
+    background-color: white;
+    color: #969696;
+}
+
+.questionbox > .contatiner > .questionFooter > .buttonContainer > .editBtns > .completeBtn {
+    padding: 6px 14px;
+    border-radius: 6px;    
+    border: none;
+    background-color: #A42C25;
+    color: white;
+}
+
+.questionbox > .contatiner > .questionFooter > .buttonContainer > button {
+    background: none;
+    border: 0px;
+    text-decoration: underline;
+    color: #646464;
+}
+
+.questionbox > .contatiner > .questionFooter > .buttonContainer > button:hover {
+    color: #404040;
+}
+
+
+
+.questionbox > .contatiner > .questionFooter > .advanceBtns > .redoBtn > img {
     width: 10px;
     height: 10px;
     margin-right: 2px;

@@ -15,6 +15,8 @@ export const Questionbox = (props) => {
     const [followClicked, setFollowClicked] = useState(false);
     const [followQuestion, setFollowQuestion] = useState("");
 
+    // variables about questions
+    const [prevQuestion, setPrevQuestion] = useState("");
     const [currentQuestion, setCurrentQuestion] = useState("");
 
     // variables about answers 
@@ -27,6 +29,7 @@ export const Questionbox = (props) => {
     const textAreaRef = useRef(null);
 
     useEffect(() => {
+        setPrevQuestion(props.question);
         setCurrentQuestion(props.question);
         setPrevAnswer(props.answer);
         setCurrentAnswer(props.answer);
@@ -36,7 +39,7 @@ export const Questionbox = (props) => {
     async function addFollowUpQuestion (prevQuestion, prevAnswer) {
         if(!isFollowUp) {
             setIsFollowUp(true);
-            axios({
+            await axios({
                 method: "POST",
                 url: "https://qna-restapi-dxpyj.run.goorm.site/getFUQuestion",
                 data: {
@@ -50,12 +53,12 @@ export const Questionbox = (props) => {
             .then ((response) => {
                 const res = response.data;
                 setfollowUpQuestions(JSON.parse((res)));
-                setIsFollowUp(false);
+                props.logging("getFollowQ", res);
             })
             .catch(error =>{
                 console.log("error");
-                setIsFollowUp(false);
             })
+            setIsFollowUp(false);
         }
     }
 
@@ -69,9 +72,14 @@ export const Questionbox = (props) => {
     // useEffect(()=> {
     //     setIsWaitAnswer(props.isWaitAnswer);
     //     if(props.isWaitAnswer === false) {
-    //         cancelAnswer();
+    //         cancelContent();
     //     }
     // }, [props.isWaitAnswer]);
+
+    const currentQuestionHandler = (e) => {
+        e.preventDefault();
+        setCurrentQuestion(e.target.value);
+    }
 
     const currentAnswerHandler = (e) => {
         e.preventDefault();
@@ -84,22 +92,27 @@ export const Questionbox = (props) => {
         if(textAreaRef.current) {
             textAreaRef.current.focus();
         }
+        props.logging("editQnA", "");
     }
 
-    function cancelAnswer() {
+    function cancelContent() {
         setCurrentAnswer(prevAnswer);
+        setCurrentQuestion(prevQuestion);
         setIsEdit(false);
     }
 
-    function changeAnswer() {
+    function changeContent() {
+        props.updateQuestion(currentQuestion);
         props.updateAnswer(currentAnswer);
         setPrevAnswer(currentAnswer);
+        setPrevQuestion(currentQuestion);
         setIsEdit(false);
     }
 
     function changePublic(isPublic) {
         props.updatePublic(!isPublic);
         setIsPublic(!isPublic);
+        props.logging("editPublic", "");
     }
 
     function requestfollowUp() {
@@ -111,11 +124,13 @@ export const Questionbox = (props) => {
 
     async function regenerateAnswer () {
         setCurrentAnswer("Regenerate Answer...");
+        setfollowUpQuestions("empty");
         setIsRegenerate(true);
         setIsEdit(false);
         await props.regenerateAnswer(currentQuestion);
         setPrevAnswer(props.answer);
         setCurrentAnswer(props.answer);
+        props.logging("regenerateA", props.answer);
         setIsRegenerate(false);
     }
 
@@ -125,6 +140,7 @@ export const Questionbox = (props) => {
     
     const handleBlur = () => {
         setIsFocus(false);
+        props.logging("changeOrder", "");
     };
 
     const requestFollowUpQuestion = async (question) => {
@@ -133,6 +149,7 @@ export const Questionbox = (props) => {
         await props.addFollowUpAnswer(question, props.myIndex);
         setFollowClicked(false);
         setfollowUpQuestions("empty");
+        props.logging("addFollowQ",question);
     }
 
     return(
@@ -141,7 +158,7 @@ export const Questionbox = (props) => {
                 <div className='contatiner'>
                     <div className='questionbar'>
                         <div className='question'>
-                            {currentQuestion}
+                            {isEdit ? <TextareaAutosize className='editQuestion' ref={textAreaRef} value={currentQuestion} onChange={currentQuestionHandler} onResize={(e) => {}}/> : <div>{currentQuestion}</div>}
                         </div>
                         <div className='buttons'>
                             <div className='makepublic'>
@@ -182,22 +199,20 @@ export const Questionbox = (props) => {
                         <div className='answer'>
                             {isEdit ? <TextareaAutosize className='editAnswer' ref={textAreaRef} value={currentAnswer} onChange={currentAnswerHandler} onResize={(e) => {}}/> : <div>{currentAnswer}</div>}
                         </div>
-                        
-                        { isRegenerate ?
-                            null
-                            :
-                            <div className='buttonContainer'>
-                                {isEdit ? <div className='editBtns'><button className='cancelBtn' onClick={cancelAnswer}>cancel</button> <button className='completeBtn' onClick={changeAnswer}>complete</button></div> : <button onClick={changeIsEdit}>Edit the Answer</button>}
-                            </div>            
-                        }
                     </div>
                     { isRegenerate ?
                         null
                         :
-                        <div className='advanceBtns'>
-                            <button onClick={regenerateAnswer} className='redoBtn'><img src="images/redo.svg" alt={'redo button'}/> Regenerate <b>Answer</b></button>
-                            <button onClick={requestfollowUp}>Recommend <b>Follow-up Question</b></button>
+                        <div className='questionFooter'>
+                            <div className='advanceBtns'>
+                                <button onClick={regenerateAnswer} className='redoBtn'><img src="images/redo.svg" alt={'redo button'}/> Regenerate <b>Answer</b></button>
+                                <button onClick={requestfollowUp}>Recommend <b>Follow-up Question</b></button>
+                            </div>
+                            <div className='buttonContainer'>
+                                {isEdit ? <div className='editBtns'><button className='cancelBtn' onClick={cancelContent}>cancel</button> <button className='completeBtn' onClick={changeContent}>complete</button></div> : <button onClick={changeIsEdit}>Edit the QnA</button>}
+                            </div>   
                         </div>
+                        
                     }
                 </div>
                 {isRegenerate?
